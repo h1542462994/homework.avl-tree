@@ -50,7 +50,7 @@ public:
     void update(T value){
         //清除Flag标签
         _clearFlag(root);
-        root = _update(root, value);
+        _update(root, value);
     }
 
     /**
@@ -60,10 +60,6 @@ public:
      */
     bnode<T>* find(T value){
         return _find(root,value);
-    }
-
-    bool contains(T value){
-        return _contains(root, value);
     }
 
     /**
@@ -76,11 +72,17 @@ public:
         return _remove(root,value);
     }
 
-
+    /**
+     * 序列化函数
+     * @param oStream
+     */
     void serialize(ostream& oStream){
         _serialize(oStream,root);
     }
 
+    /**
+     * 打印函数
+     */
     void print(){
         if(root == nullptr){
             cout << "Empty Tree" << endl;
@@ -89,6 +91,11 @@ public:
         }
     }
 
+    /**
+     * 反序列化函数
+     * @param iStream
+     * @return
+     */
     bool deSerialize(istream& iStream){
         clear();
         string line;
@@ -105,6 +112,9 @@ public:
         return true;
     }
 
+    /**
+     * 清空整棵AVL树
+     */
     void clear(){
         _clear(root);
         root = nullptr;
@@ -122,11 +132,10 @@ public:
 private:
     bnode<T>* root = nullptr;
     /**
-     * 对应节点的右旋操作
-     * @param node 要操作的节点
-     * @return 右旋操作后的根节点
+     * 右旋某一节点
+     * @param node 要操作的节点 &reference type
      */
-    bnode<T>* _r(bnode<T>* node){
+    void _r(bnode<T>*& node){
         bnode<T>* newRoot = node->left;
         node->left = newRoot->right;
         newRoot->right = node;
@@ -141,14 +150,13 @@ private:
         _updateHeight(node);
         _updateHeight(newRoot);
 
-        return newRoot;
+        node = newRoot;
     }
     /**
-     * 对应节点的左旋操作
-     * @param node 要操作的节点
-     * @return 左旋操作后的根节点
+     * 左旋某一节点
+     * @param node 要操作的节点 &reference type
      */
-    bnode<T>* _l(bnode<T>* node){
+    void _l(bnode<T>*& node){
         bnode<T>* newRoot = node->right;
         node->right = newRoot->left;
 
@@ -164,34 +172,30 @@ private:
         _updateHeight(node);
         _updateHeight(newRoot);
 
-        return newRoot;
+        node = newRoot;
     }
     /**
-     * 对当前节点进行调整平衡的操作
+     * 对当前节点进行调整平衡的操作 &reference type
      * @param node 要操作的节点
-     * @return 调整平衡之后的节点
      */
-    bnode<T>* _toBalanced(bnode<T>*node){
-        int balance = _getBalance(node);
+    void _balance(bnode<T>*& node){
+        int bf = _bf(node);
 
-        if(balance > 1){ // 节点左边更高，为LL型或者LR型
-            int inBalance = _getBalance(node->left);
-            if(inBalance < 0){
+        if(bf > 1){ // 节点左边更高，为LL型或者LR型
+            int inBf = _bf(node->left);
+            if(inBf < 0){
                 // 考虑LR型需要旋转左分支节点
-                node->left = _l(node->left);
+                _l(node->left);
             }
-            return _r(node);
-        } else if(balance < -1){ // 节点右边更高，为RR型或者RL型
-            int inBalance = _getBalance(node->right);
-            if(inBalance > 0){
+            _r(node);
+        } else if(bf < -1){ // 节点右边更高，为RR型或者RL型
+            int inBf = _bf(node->right);
+            if(inBf > 0){
                 // 考虑RL型需要旋转右分支节点
-                node->right = _r(node->right);
+                _r(node->right);
             }
-            return _l(node);
+            _l(node);
         }
-        //_updateHeight(node);
-
-        return node;
     }
 
     /**
@@ -220,7 +224,7 @@ private:
      * @param node
      * @return
      */
-    int _getBalance(bnode<T>* node){
+    int _bf(bnode<T>* node){
         if(node == nullptr){
             return 0;
         } else {
@@ -300,25 +304,24 @@ private:
      * @param value
      * @return
      */
-    bnode<T>* _update(bnode<T>* node, T value){
+    void _update(bnode<T>*& node, T value){
         if(node == nullptr){
-            return new bnode<T>(value);
+            node = new bnode<T>(value);
         }
 
         //递归查找插入点
         if(value < node->value){
-            node->left = _update(node->left, value);
+            _update(node->left, value);
         } else if(value > node->value){
-            node->right = _update(node->right, value);
+            _update(node->right, value);
         } else {
             node->value = value;
-            return node;
         }
 
         //更新节点的高度
         _updateHeight(node);
 
-        return _toBalanced(node);
+        _balance(node);
 
     }
 
@@ -377,13 +380,13 @@ private:
                 if(_getHeight(node->left) > _getHeight(node->right)){
                     //如果左子树更高，将左子树最大的元素赋给根节点，让后删除左子树最大的元素。
                     node->value = _findMax(node->left)->value;
-                     _remove(node->left, node->value);
-                     node->left = _toBalanced(node->left);
+                    _remove(node->left, node->value);
+                    _balance(node->left);
                 } else {
                     //如果右子树更高，将右子树最小的元素赋给根节点，然后删除右子树最小的元素。
                     node->value = _findMin(node->right)->value;
                     _remove(node->right, node->value);
-                    node -> right = _toBalanced(node->right);
+                    _balance(node->right);
                 }
 
             } else { //如果只有一边有子树，则直接用子节点代替根节点即可
@@ -394,10 +397,10 @@ private:
             return flag;
         } else if(value < node->value) { //要删除的节点在左子树上
             flag = _remove(node->left, value);
-            node = _toBalanced(node);
+            _balance(node);
         } else if(value > node->value){
             flag = _remove(node->right, value);
-            node = _toBalanced(node);
+            _balance(node);
         }
 
         return flag;
