@@ -46,7 +46,7 @@ public:
             }
             //out << (++index) << "." << menu[i] << endl;
         }
-        if((menu.size() + 1) % 3 != 0){
+        if((menu.size()) % 3 != 0){
             out << endl;
         }
         out << "***************************************************" << endl << consoleforecolor::normal;

@@ -68,13 +68,16 @@ public:
     AVLTree<LoginData> loginData;
 
     string subpage;
-    //联系人的存储
 
+    string current;
 private:
     inline void init()
     {
-        page = "home";
-        menus["home"] = { "导入","导出","注册账号","登录账号","删除账号","修改密码","打印","序列化","清空缓存","退出程序"};
+        page = "main";
+        menus["main"] = { "导入","导出","转到普通用户界面","转到管理员界面","退出程序"};
+        menus["client"] = {"退回主界面","注册","登录"};
+        menus["logged"] = {"退出登录","欢迎","修改密码","删除账号"};
+        menus["admin"] = {"退回主界面", "添加账号", "查看账号信息", "修改密码", "删除账号", "清除缓存","调试/打印","调试/显示所有信息"};
         subpage = "";
     }
     map<string, Menu> menus;

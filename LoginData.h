@@ -1,6 +1,7 @@
 //
 // Created by cht on 2019/11/27.
 //
+#pragma once
 #include <string>
 #include <iostream>
 #include <utility>
@@ -86,4 +87,6 @@ public:
         return iStream;
     }
 };
+
+string toSimple(LoginData data);
 

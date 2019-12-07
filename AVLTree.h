@@ -7,14 +7,15 @@
 #include <iomanip>
 #include "consolecolor.h"
 #include <fstream>
+#include <string>
 
 using namespace std;
 
 template <typename T>
 class AVLTree{
-
-
 public:
+    typedef string(*action)(T value);
+
     /**
      * 从文件加载缓存
      * @param fileName
@@ -87,7 +88,8 @@ public:
         if(root == nullptr){
             cout << "Empty Tree" << endl;
         } else {
-            _serialize(cout,root);
+            _print(cout, root);
+            //_serialize(cout,root);
         }
     }
 
@@ -128,6 +130,13 @@ public:
             cout << "Empty Tree" << endl;
         }
         _lPrint(cout, root, 0, spacing);
+    }
+
+    void lPrintSlicing( action a, int spacing = 8){
+        if(root == nullptr){
+            cout << "Empty Tree" << endl;
+        }
+        _lPrintSlicing(cout, root, a,0,spacing);
     }
 private:
     bnode<T>* root = nullptr;
@@ -264,6 +273,31 @@ private:
         _lPrint(oStream, node->left,start + spacing, spacing);
     }
 
+    void _lPrintSlicing(ostream& oStream, bnode<T>* node,action action, int start = 0, int spacing = 4){
+        if(node == nullptr){
+            return;
+        }
+
+        _lPrintSlicing(oStream, node->right, action,start + spacing, spacing);
+
+        oStream << setw(start) << " ";
+        if(node->flag > 0){
+            oStream << consoleforecolor::ochre;
+            if(node->flag == 1){
+                cout << "(LL)";
+            } else if(node->flag == 2){
+                cout << "(RR)";
+            } else if(node->flag == 3) {
+                cout << "(LR)";
+            } else if(node->flag == 4){
+                cout << "(RL)";
+            }
+        }
+        cout << action(node->value) << endl;
+        oStream << consoleforecolor::normal;
+        _lPrintSlicing(oStream, node->left,action,start + spacing, spacing);
+    }
+
     /**
      * 查找某一个节点
      * @param node
@@ -282,6 +316,15 @@ private:
                 return _find(node->right,value);
             }
         }
+    }
+
+    void _print(ostream& oStream, bnode<T>* node){
+        if(node == nullptr){
+            return;
+        }
+        _print(oStream,node->left);
+        oStream << node->value << endl ;
+        _print(oStream,node->right);
     }
 
     /**
