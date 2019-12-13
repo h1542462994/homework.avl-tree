@@ -8,6 +8,7 @@
 #include "consolecolor.h"
 #include <fstream>
 #include <string>
+#include <queue>
 
 using namespace std;
 
@@ -149,7 +150,6 @@ private:
         node->left = newRoot->right;
         newRoot->right = node;
 
-        //标记Flag为右旋
         if(newRoot->flag == 0){
             newRoot->flag = 1;
         } else {
@@ -336,9 +336,25 @@ private:
         if(node == nullptr){
             return;
         }
-        oStream << node->value << endl ;
-        _serialize(oStream,node->left);
-        _serialize(oStream,node->right);
+
+        queue<bnode<T>*> q;
+        q.push(node);
+
+        while(!q.empty()){
+            bnode<T>* element = q.front();
+            q.pop();
+            oStream << element->value << endl;
+            if(element->left != nullptr){
+                q.push(element->left);
+            }
+            if(element->right != nullptr){
+                q.push(element->right);
+            }
+        }
+
+        //oStream << node->value << endl ;
+        //_serialize(oStream,node->left);
+        //_serialize(oStream,node->right);
     }
 
     /**
